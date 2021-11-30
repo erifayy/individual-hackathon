@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from main.views import ArticleViewSet, ReplyViewSet, CommentViewSet
+from main.views import ArticleViewSet, CommentViewSet, ChangePasswordView, RatingViewSet, ImageView
 
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
@@ -27,18 +27,18 @@ from drf_yasg import openapi
 
 
 router = DefaultRouter()
-router.register('problems', ArticleViewSet)
-router.register('replies', ReplyViewSet)
+router.register('articles', ArticleViewSet)
 router.register('comments', CommentViewSet)
+router.register('rating', RatingViewSet)
 
 
 schema_view = get_schema_view(
    openapi.Info(
-      title="RiNews",
+      title="The latest psychology news",
       default_version='v1',
-      description="The best source of political information.",
+      description="The best source of brain-storm information.",
       terms_of_service="https://www.google.com/policies/terms/",
-      contact=openapi.Contact(email="rinews@com"),
+      contact=openapi.Contact(email="admin@gmail.com"),
       license=openapi.License(name="The Best License"),
    ),
    public=True,
@@ -49,7 +49,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', schema_view.with_ui()),
     path('api/v1/', include(router.urls)),
+    path('api/v1/add-image/', ImageView.as_view()),
     path('api/v1/account/', include('account.urls')),
-   # path('api/v1/login/', include('login.urls')),
-]
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    path('api/v1/change-password/', ChangePasswordView.as_view()),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

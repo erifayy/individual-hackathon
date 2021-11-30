@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 import os
 from pathlib import Path
-
+from datetime import timedelta
 from decouple import config
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
@@ -44,8 +44,11 @@ INSTALLED_APPS = [
 
     # libs
     'rest_framework',
+    'rest_framework.authtoken',
     'phonenumber_field',
     'drf_yasg',
+    'django_filters',
+    'django_rest_passwordreset',
 ]
 
 MIDDLEWARE = [
@@ -63,7 +66,7 @@ ROOT_URLCONF = 'stack_api.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -137,24 +140,32 @@ DEFAULT_AUTO_FIELD = 'django_db_models.BigAutoField'
 
 AUTH_USER_MODEL = 'account.MyUser'
 
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=600),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7)
+}
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'aiperibzkva@gmail.com'
+EMAIL_HOST_PASSWORD = 'clappy21KA'
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 2
+    'PAGE_SIZE': 3,
 }
 
-TWILIO_ACCOUNT_SID = config('TWILIO_ACCOUNT_SID')
-TWILIO_AUTH_TOKEN = config('TWILIO_AUTH_TOKEN')
-TWILIO_SENDER_PHONE = config('TWILIO_SENDER_PHONE')
 
-from datetime import timedelta
 
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=100000),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=27),
-}
-
-LOGIN_REDIRECT_URL = '/'
+REDIS_HOST = '0.0.0.0'
+REDIS_PORT = '6379'
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'

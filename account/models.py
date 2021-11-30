@@ -1,50 +1,42 @@
 from django.contrib.auth.base_user import BaseUserManager
-from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.crypto import get_random_string
-from phonenumber_field.modelfields import PhoneNumberField
 
 
 class MyUserManager(BaseUserManager):
-    use_in_migrations = True
+    user_in_migrations = True
 
-    def create_user(self, phone_number, password, **extra_fields):
-        if not phone_number:
-            raise ValueError('Phone number must be set.')
-        user = self.model(phone_number=phone_number, **extra_fields)
-        user.password = make_password(password)
+    def create_user(self, email, password, **extra_fields):
+        email = self.normalize_email(email)
+        user = self.model(email=email)  # book Book(title='title', author_id = 3, category='comedy') -> book.save()
+        user.set_password(password)
         user.create_activation_code()
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, phone_number, password, **extra_fields):
-        if not phone_number:
-            raise ValueError('Phone number must be set.')
-        user = self.model(phone_number=phone_number, **extra_fields)
-        user.password = make_password(password)
+    def create_superuser(self, email, password, **extra_fields):
+        email = self.normalize_email(email)
+        user = self.model(email=email)
+        user.set_password(password)
         user.is_active = True
-        user.is_superuser = True
         user.is_staff = True
+        user.is_superuser = True
         user.save(using=self._db)
         return user
 
 
 class MyUser(AbstractUser):
-    phone_number = PhoneNumberField(unique=True)
-    username = models.CharField(max_length=155, unique=True)
+    username = None
+    email = models.EmailField(unique=True)
     is_active = models.BooleanField(default=False)
-    activation_code = models.CharField(max_length=6, blank=True)
+    activation_code = models.CharField(max_length=50, blank=True)
 
-    USERNAME_FIELD = 'phone_number'
-    REQUIRED_FIELDS = ['username']
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
 
     objects = MyUserManager()
 
-    def __str__(self):
-        return f'{self.username} {self.phone_number}'
-
     def create_activation_code(self):
-        code = get_random_string(length=6, allowed_chars='1234567890AIPERI')
-        print(code)
+        code = get_random_string(length=25, allowed_chars='abcdefgh123456789')
         self.activation_code = code

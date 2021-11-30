@@ -1,16 +1,42 @@
-from django.conf import settings
-from twilio.rest import Client
+from django.core.mail import send_mail
+from django.dispatch import receiver
+from django.urls import reverse
+from django_rest_passwordreset.signals import reset_password_token_created
+from stack_api.celery import app
 
-account_sid = settings.TWILIO_ACCOUNT_SID
-account_token = settings.TWILIO_AUTH_TOKEN
-twilio_sender = settings.TWILIO_SENDER_PHONE
 
+@app.task
+def send_activation_code(email, activation_code):
+    activation_url = f'http://localhost:8000/api/v1/account/activate/{activation_code}'
+    message = f"""
+        Hi! Thank you for signing up.
+        Please, activate your account. 
+        Activation link: {activation_url}
+    """
 
-def send_activation_sms(phone_number, activation_code):
-    message = f'Hi! This is your activation code: {activation_code}.'
-    client = Client(account_sid, account_token)
-    client.messages.create(
-        body=message,
-        from_=twilio_sender,
-        to=phone_number
+    send_mail(
+        'Activate your account.',
+        message,
+        'admin@gmail.com',
+        [email],
+        fail_silently=False
     )
+
+
+@receiver(reset_password_token_created)
+def password_reset_token_created(sender, instance, reset_password_token, *args, **kwargs):
+
+    reset_password_url = 'http://localhost:8000'+'{}?token={}'.format(reverse('password_reset:reset-password-request'), reset_password_token.key)
+
+    send_mail(
+        "Password Reset",
+        reset_password_url,
+        "noreply@somehost.local",
+        [reset_password_token.user.email],
+        fail_silently=False
+    )
+
+
+
+
+

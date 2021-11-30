@@ -4,7 +4,7 @@ from .models import *
 
 
 class ImageInline(admin.TabularInline):
-    model = CodeImage
+    model = Image
     max_num = 7
     min_num = 1
 
@@ -14,5 +14,4 @@ class ArticleAdmin(admin.ModelAdmin):
     inlines = [ImageInline, ]
 
 
-admin.site.register(Reply)
 admin.site.register(Comment)
